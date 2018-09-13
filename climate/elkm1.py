@@ -36,7 +36,7 @@ SUPPORT_FLAGS = (
 # pylint: disable=unused-argument
 async def async_setup_platform(hass, config, async_add_devices, discovery_info):
     """Setup the Elk switch platform."""
-    elk = hass.data[DOMAIN]['connection']
+    elk = hass.data[DOMAIN]['elk']
     async_add_devices(create_elk_devices(hass, elk.thermostats, 'thermostat',
                                          ElkThermostat, []), True)
     return True

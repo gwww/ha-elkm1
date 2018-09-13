@@ -22,7 +22,7 @@ from custom_components.elkm1 import (DOMAIN, create_elk_devices,
                                      ElkDeviceBase, register_elk_service)
 from elkm1_lib.const import (ElkRPStatus, SettingFormat, ZoneLogicalStatus,
                              ZonePhysicalStatus, ZoneType)
-from elkm1_lib.util import pretty_const
+from elkm1_lib.util import pretty_const, username
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 
@@ -61,7 +61,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_platform(hass, config, async_add_devices, discovery_info):
     """Setup the Elk sensor platform."""
 
-    elk = hass.data[DOMAIN]['connection']
+    elk = hass.data[DOMAIN]['elk']
     devices = create_elk_devices(hass, [elk.panel],
                                  'panel', ElkPanel, [])
     devices = create_elk_devices(hass, elk.zones,
@@ -129,7 +129,6 @@ class ElkKeypad(ElkDeviceBase):
     """Handle an Elk Keypad."""
     def __init__(self, device, hass, config):
         ElkDeviceBase.__init__(self, 'sensor', device, hass, config)
-        self._last_user_time = 0
 
     @property
     def temperature_unit(self):
@@ -143,23 +142,26 @@ class ElkKeypad(ElkDeviceBase):
 
     @property
     def device_state_attributes(self):
-        """Attributes of the sensor."""
+        """Attributes of the keypad."""
         attrs = self.initial_attrs()
-        attrs['last_user'] = self._element.last_user + 1
-        attrs['last_user_name'] = \
-            self._elk.users[self._element.last_user].name \
-            if self._element.last_user >= 0 else ""
-        attrs['last_user_time'] = self._last_user_time
-        attrs['temperature'] = self._element.temperature
         attrs['area'] = self._element.area + 1
+        attrs['temperature'] = self._element.temperature
+        attrs['last_user_time'] = self._element.last_user_time.isoformat()
+        attrs['last_user'] = self._element.last_user + 1
+        attrs['code'] = self._element.code
+
+        attrs['last_user_name'] = username(self._elk, self._element.last_user)
         return attrs
 
     # pylint: disable=unused-argument
     def _element_changed(self, element, changeset):
         self._state = temperature_to_state(self._element.temperature, -40)
-        if changeset.get('last_user'):
-            self._last_user_time = time.time()
 
+    async def async_added_to_hass(self):
+        """Register callback for ElkM1 changes and update entity state."""
+        await ElkDeviceBase.async_added_to_hass(self)
+        self._hass.data[DOMAIN]['keypads'][
+            self._element.index] = self.entity_id
 
 class ElkZone(ElkDeviceBase):
     """Handle an Elk Zone."""

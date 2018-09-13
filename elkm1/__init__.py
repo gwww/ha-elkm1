@@ -22,7 +22,7 @@ from homeassistant.helpers.typing import ConfigType  # noqa
 
 DOMAIN = "elkm1"
 
-REQUIREMENTS = ['elkm1-lib==0.7.8']
+REQUIREMENTS = ['elkm1-lib==0.7.9']
 
 CONF_AREA = 'area'
 CONF_COUNTER = 'counter'
@@ -159,7 +159,8 @@ async def async_setup(hass: HomeAssistant, hass_config: ConfigType) -> bool:
     elk = elkm1.Elk({'url': host, 'userid': username, 'password': password})
     elk.connect()
 
-    hass.data[DOMAIN] = {'connection': elk, 'config': config}
+    hass.data[DOMAIN] = {'elk': elk, 'config': config,
+                         'entities': {}, 'keypads': {}}
     for component in SUPPORTED_DOMAINS:
         hass.async_add_job(
             discovery.async_load_platform(hass, component, DOMAIN, None, None))
@@ -178,7 +179,7 @@ def register_elk_service(hass, domain, service_name, schema, service_handler):
     """Map services to methods."""
     async def async_service_handler(service):
         for entity_id in service.data.get(ATTR_ENTITY_ID, []):
-            entity = hass.data[DOMAIN].get(entity_id)
+            entity = hass.data[DOMAIN]['entities'].get(entity_id)
             if not entity:
                 continue
 
@@ -196,7 +197,7 @@ def register_elk_service(hass, domain, service_name, schema, service_handler):
 class ElkDeviceBase(Entity):
     """Sensor devices on the Elk."""
     def __init__(self, platform, element, hass, config):
-        self._elk = hass.data[DOMAIN]['connection']
+        self._elk = hass.data[DOMAIN]['elk']
         self._element = element
         self._hass = hass
         self._show_override = config['shown'][element.index]
@@ -209,6 +210,11 @@ class ElkDeviceBase(Entity):
     def name(self):
         """Name of the element."""
         return self._element.name
+
+    # @property
+    # def unique_id(self):
+    #     """Unique id of the element."""
+    #     return self._unique_id
 
     @property
     def state(self):
@@ -249,4 +255,4 @@ class ElkDeviceBase(Entity):
         """Register callback for ElkM1 changes and update entity state."""
         self._element.add_callback(self._element_callback)
         self._element_callback(self._element, {})
-        self._hass.data[DOMAIN][self.entity_id] = self
+        self._hass.data[DOMAIN]['entities'][self.entity_id] = self
