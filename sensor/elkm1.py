@@ -234,7 +234,7 @@ class ElkThermostat(ElkDeviceBase):
 
     # pylint: disable=unused-argument
     def _element_changed(self, element, changeset):
-        self._state = temperature_to_state(self._element.temperature, 0)
+        self._state = temperature_to_state(self._element.current_temp, 0)
 
 
 # pylint: disable=too-few-public-methods

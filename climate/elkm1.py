@@ -64,6 +64,11 @@ class ElkThermostat(ElkDeviceBase, ClimateDevice):
         return TEMP_FAHRENHEIT
 
     @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement to display."""
+        return self.temperature_unit
+
+    @property
     def current_temperature(self):
         """Return the current temperature."""
         return self._element.current_temp
@@ -91,11 +96,6 @@ class ElkThermostat(ElkDeviceBase, ClimateDevice):
     def precision(self):
         """Return the precision of the system."""
         return PRECISION_WHOLE
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement to display."""
-        return self.temperature_unit
 
     @property
     def current_humidity(self):
