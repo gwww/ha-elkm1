@@ -13,7 +13,8 @@ import logging
 import voluptuous as vol
 from homeassistant.const import (ATTR_ENTITY_ID, CONF_EXCLUDE,
                                  CONF_HOST, CONF_INCLUDE, CONF_PASSWORD,
-                                 CONF_USERNAME, STATE_UNKNOWN)
+                                 CONF_TEMPERATURE_UNIT, CONF_USERNAME,
+                                 STATE_UNKNOWN, TEMP_CELSIUS, TEMP_FAHRENHEIT)
 from homeassistant.core import HomeAssistant, callback  # noqa
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import discovery
@@ -55,6 +56,8 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Required(CONF_HOST): cv.string,
         vol.Optional(CONF_USERNAME): cv.string,
         vol.Optional(CONF_PASSWORD): cv.string,
+        vol.Optional(CONF_TEMPERATURE_UNIT, default='fahrenheit'):
+            vol.In(['celsius', 'fahrenheit']),
         vol.Optional(CONF_AREA): CONFIG_SCHEMA_SUBDOMAIN,
         vol.Optional(CONF_COUNTER): CONFIG_SCHEMA_SUBDOMAIN,
         vol.Optional(CONF_KEYPAD): CONFIG_SCHEMA_SUBDOMAIN,
@@ -156,6 +159,8 @@ async def async_setup(hass: HomeAssistant, hass_config: ConfigType) -> bool:
             _LOGGER.error("Config item: %s; %s", item, err)
             return False
 
+    config['temperature_unit'] = config_raw[CONF_TEMPERATURE_UNIT]
+
     elk = elkm1.Elk({'url': host, 'userid': username, 'password': password})
     elk.connect()
 
@@ -203,6 +208,8 @@ class ElkDeviceBase(Entity):
         self._show_override = config['shown'][element.index]
         self._hidden = False
         self._state = STATE_UNKNOWN
+        self._temperature_unit = TEMP_CELSIUS if hass.data[DOMAIN][
+            'config']['temperature_unit'] == 'celsius' else TEMP_FAHRENHEIT
         self.entity_id = platform + '.elkm1_' + \
             self._element.default_name('_').lower()
 

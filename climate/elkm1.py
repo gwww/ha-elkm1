@@ -19,7 +19,7 @@ from homeassistant.components.climate import (ATTR_TARGET_TEMP_HIGH,
                                               SUPPORT_TARGET_TEMPERATURE_HIGH,
                                               SUPPORT_TARGET_TEMPERATURE_LOW,
                                               ClimateDevice)
-from homeassistant.const import STATE_ON, STATE_UNKNOWN, TEMP_FAHRENHEIT
+from homeassistant.const import (STATE_ON, STATE_UNKNOWN)
 
 from custom_components.elkm1 import DOMAIN, ElkDeviceBase, create_elk_devices
 from elkm1_lib.const import ThermostatFan, ThermostatMode, ThermostatSetting
@@ -61,7 +61,7 @@ class ElkThermostat(ElkDeviceBase, ClimateDevice):
     @property
     def temperature_unit(self):
         """Return the unit of measurement."""
-        return TEMP_FAHRENHEIT
+        return self._temperature_unit
 
     @property
     def unit_of_measurement(self):

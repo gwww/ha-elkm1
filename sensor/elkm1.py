@@ -225,7 +225,7 @@ class ElkThermostat(ElkDeviceBase):
     @property
     def temperature_unit(self):
         """The temperature scale."""
-        return TEMP_FAHRENHEIT
+        return self._temperature_unit
 
     @property
     def icon(self):
