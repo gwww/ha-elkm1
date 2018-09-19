@@ -136,6 +136,11 @@ class ElkKeypad(ElkDeviceBase):
         return TEMP_FAHRENHEIT
 
     @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement to display."""
+        return self.temperature_unit
+
+    @property
     def icon(self):
         """Icon to use in the frontend."""
         return 'mdi:thermometer-lines'
@@ -201,7 +206,7 @@ class ElkZone(ElkDeviceBase):
     def unit_of_measurement(self):
         """Unit of measurement."""
         if self._element.definition == ZoneType.TEMPERATURE.value:
-            return self.hass.config.units.temperature_unit
+            return self.temperature_unit
         if self._element.definition == ZoneType.ANALOG_ZONE.value:
             return 'volts'
         return None
@@ -226,6 +231,11 @@ class ElkThermostat(ElkDeviceBase):
     def temperature_unit(self):
         """The temperature scale."""
         return self._temperature_unit
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement to display."""
+        return self.temperature_unit
 
     @property
     def icon(self):
