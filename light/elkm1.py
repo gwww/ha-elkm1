@@ -57,18 +57,8 @@ class ElkLight(ElkDeviceBase, Light):
 
     async def async_turn_on(self, **kwargs):
         """Let there be light!"""
-        brightness = kwargs.get(ATTR_BRIGHTNESS, 255)
-        level = round(brightness / 2.55)
-        if level == 0:
-            self._element.turn_off()
-        elif level >= 98:
-            self._element.turn_on()
-        elif level == 1:
-            self._element.turn_on(2)
-        else:
-            self._element.turn_on(level)
+        self._element.level(round(kwargs.get(ATTR_BRIGHTNESS, 255) / 2.55))
 
     async def async_turn_off(self, **kwargs):
         """In the darkness..."""
-        self._brightness = 0
-        self._element.turn_off()
+        self._element.level(0)
