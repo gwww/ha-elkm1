@@ -104,20 +104,17 @@ async def async_setup(hass: HomeAssistant, hass_config: ConfigType) -> bool:
         return i
 
     def parse_range(config, item, set_to, values, max_):
-        """Parse a range list, e.g. rng = "3, 45, 46, 48-51, 77."""
-        if item not in config:
-            return
-
-        ranges = config[item]
+        """Parse a range list, e.g. range in form of 3 or 2-7"""
+        ranges = config.get(item, [])
         for rng in ranges:
-            for one_rng in map(str.strip, str(rng).split(',')):
-                if '-' in one_rng:
-                    rng_vals = [s.strip() for s in one_rng.split('-')]
-                    start = parse_value(rng_vals[0], max_)
-                    end = parse_value(rng_vals[1], max_)
-                else:
-                    start = end = parse_value(one_rng, max_)
-                values[start-1:end] = [set_to] * (end - start + 1)
+            rng = str(rng)
+            if '-' in rng:
+                rng_vals = [s.strip() for s in rng.split('-')]
+                start = parse_value(rng_vals[0], max_)
+                end = parse_value(rng_vals[1], max_)
+            else:
+                start = end = parse_value(rng, max_)
+            values[start-1:end] = [set_to] * (end - start + 1)
 
     def parse_config(item, max_):
         """Parse a config for an element type such as: zones, plc, etc."""
@@ -210,18 +207,19 @@ class ElkDeviceBase(Entity):
         self._state = STATE_UNKNOWN
         self._temperature_unit = TEMP_CELSIUS if hass.data[DOMAIN][
             'config']['temperature_unit'] == 'celsius' else TEMP_FAHRENHEIT
-        self.entity_id = platform + '.elkm1_' + \
+        self._unique_id = platform + '.elkm1_' + \
             self._element.default_name('_').lower()
+        self.entity_id = self._unique_id
 
     @property
     def name(self):
         """Name of the element."""
         return self._element.name
 
-    # @property
-    # def unique_id(self):
-    #     """Unique id of the element."""
-    #     return self._unique_id
+    @property
+    def unique_id(self):
+        """Unique id of the element."""
+        return self._unique_id
 
     @property
     def state(self):
